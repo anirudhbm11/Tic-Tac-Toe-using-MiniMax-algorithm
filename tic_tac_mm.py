@@ -1,7 +1,7 @@
 class TicTacToe:
     def __init__(self, singleOrMulti, player1, player2, player1_piece, player2_piece, turn) -> None:
         self.moves = [0 for _ in range(0,9)]
-        self.wining_combos = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]
+        self.wining_combos = [[0,1,2],[3,4,5],[6,7,8],[2,5,8],[0,4,8],[2,4,6],[0,3,6],[1,4,7]]
         self.move_map = {"00":0, "01": 1, "02": 2, "10": 3, "11": 4, "12": 5, "20": 6, "21": 7, "22":8}
         self.turn = turn
         self.player1 = player1
@@ -13,26 +13,36 @@ class TicTacToe:
 
     def play(self):
         status = -1
+        curr_turn = 0
         if self.singleOrMulti == 1:
-            for i in range(0,9):
-                self.printing_board()
-                status = self.check_for_win()
-                if(status != -1):
-                    break
-                if (i+self.turn)%2 == 0:
+            if self.turn == 1:
+                curr_turn = 0
+            else:
+                curr_turn = 1
+            for _ in range(0,len(self.moves)):
+                if curr_turn == 1:
+                    print("Computer is playing.....")
                     self.computer_playing()
+                    curr_turn = 0
                 else:
                     self.player_playing(1)
-        else:
-            for i in range(0,9):
+                    curr_turn = 1
                 self.printing_board()
                 status = self.check_for_win()
                 if(status != -1):
                     break
-                if i%2 == 0:
+        else:
+            for i in range(0,len(self.moves)):
+                if curr_turn == 0:
                     self.player_playing(1)
+                    curr_turn  = 1
                 else:
                     self.player_playing(2)
+                    curr_turn = 0
+                self.printing_board()
+                status = self.check_for_win()
+                if(status != -1):
+                    break
 
         if status == -1:
             print("Game is drawn....")
@@ -48,39 +58,39 @@ class TicTacToe:
         
         return -1
 
-    def minimax(self, player):
-        status=self.check_for_win();
-        if(status!=-1):
-            return (status*player);
-        pos=-1;
-        value=-2;
-        for i in range(0,9):
-            if(self.moves[i]==0):
-                self.moves[i]=player;
-                score=-self.minimax((player*-1));
-                if(score>value):
-                    value=score;
-                    pos=i;
-                self.moves[i]=0;
+    def minimax(self, weight):
+        status=self.check_for_win()
+        if status != -1:
+            return weight
+        play_idx = -1
+        max_weight = -99
+        for i in range(0,len(self.moves)):
+            if self.moves[i] == 0:
+                self.moves[i] = weight
+                curr_weight =  self.minimax(weight * weight)
+                if(curr_weight > max_weight):
+                    max_weight = curr_weight
+                    play_idx = i
+                self.moves[i] = 0
 
-        if(pos==-1):
-            return 0;
-        return value;
+        if(play_idx == -1):
+            return 0
+        return max_weight
         
-    #This function makes the computer's move using minmax algorithm.
+
     def computer_playing(self):
-        pos=-1;
-        value=-2;
-        for i in range(0,9):
-            if(self.moves[i]==0):
-                self.moves[i]=1;
-                score=-self.minimax(-1);
-                self.moves[i]=0;
-                if(score>value):
-                    value=score;
-                    pos=i;
+        final_idx = -1
+        max_weight = -99
+        for i in range(0,len(self.moves)):
+            if self.moves[i] == 0:
+                self.moves[i] = 1
+                curr_weight = self.minimax(2)
+                self.moves[i] = 0
+                if(curr_weight>max_weight):
+                    max_weight = curr_weight
+                    final_idx = i
     
-        self.moves[pos]=2;
+        self.moves[final_idx] = 2
 
     def player_playing(self, player):
         stringmove = input("Enter player move in terms of row and column where first row and column is 0: ")
@@ -96,17 +106,19 @@ class TicTacToe:
         self.moves[player_move] = player
 
     def printing_board(self):
-        print("Current State Of Board : \n\n");
-        for i in range (0,9):
-            if((i>0) and (i%3)==0):
-                print("\n");
-            if(self.moves[i]==0):
-                print("- ",end=" ");
-            if (self.moves[i]==1):
-                print(self.player1_piece + " ",end=" ");
-            if(self.moves[i]==2):    
-                print(self.player2_piece + " ",end=" ");
-        print("\n\n")
+        print("Updated Board : \n")
+        count = 0
+        for _ in range (0,3):
+            for _ in range(0,3):
+                if self.moves[count]==0:
+                    print("- ", end = " ")
+                if self.moves[count] == 1 :
+                    print(self.player1_piece + " ",end = " ")
+                if self.moves[count] == 2:    
+                    print(self.player2_piece + " ",end = " ")
+                count += 1
+            print("\n")
+        print("\n")
 
 if __name__ == "__main__" :
     singleOrMulti = int(input("Enter 1 for single player and 2 for multiplayer: "))
@@ -125,7 +137,7 @@ if __name__ == "__main__" :
             exit(1)
         turn = int(input("Enter 1 to play first or 2 to play second: "))
         
-        tictac = TicTacToe(singleOrMulti,1, -1, player1_piece, player2_piece, turn)
+        tictac = TicTacToe(singleOrMulti,1, 2, player1_piece, player2_piece, turn)
 
     elif singleOrMulti == 2:
         piece_choice = input("Enter '0' or 'X' for your player 1 piece choice: ")
