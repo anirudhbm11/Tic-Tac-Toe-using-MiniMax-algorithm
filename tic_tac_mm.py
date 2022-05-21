@@ -86,7 +86,7 @@ class TicTacToe:
                 self.moves[i] = 1
                 curr_weight = self.minimax(2)
                 self.moves[i] = 0
-                if(curr_weight>max_weight):
+                if(curr_weight > max_weight):
                     max_weight = curr_weight
                     final_idx = i
     
